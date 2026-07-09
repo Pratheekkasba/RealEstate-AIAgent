@@ -6,10 +6,44 @@ dotenv.config();
 
 // Initialize the Gemini Client
 const apiKey = process.env.GEMINI_API_KEY;
-// Determine if we should run in Simulation Mode (if API key is missing or is placeholder)
 const isSimulationMode = !apiKey || apiKey.includes('YOUR_GEMINI_API_KEY');
 
 export const ai = !isSimulationMode ? new GoogleGenAI({ apiKey }) : null;
+
+/**
+ * Perform web search using Tavily API for cleaner, faster results.
+ */
+export async function searchTavily(queryText) {
+  const tavilyKey = process.env.TAVILY_API_KEY;
+  if (!tavilyKey) {
+    throw new Error("Tavily API key is missing from environment.");
+  }
+
+  console.log(`[Tavily Search] Querying: "${queryText}"`);
+
+  const response = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: tavilyKey,
+      query: queryText,
+      search_depth: 'advanced',
+      max_results: 5
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`Tavily API failed with status ${response.status}`);
+  }
+
+  const data = await response.json();
+  const results = data.results || [];
+  
+  // Format results into standard clean text
+  return results.map((r, idx) => 
+    `[Source ${idx + 1}] Title: ${r.title}\nURL: ${r.url}\nContent: ${r.content}\n`
+  ).join('\n');
+}
 
 /**
  * Call Gemini model with built-in retries, backoff, and fallback configurations.
@@ -26,11 +60,8 @@ export async function callGemini({
 }) {
   if (isSimulationMode) {
     console.log(`[API Client] [SIMULATION MODE] Mocking API request for model: ${model}`);
-    
-    // Track successful call for health monitoring
     eventBus.emitEvent('api:success', { model, useSearch });
     
-    // Return mock responses based on prompt keywords
     let mockText = '';
 
     if (prompt.includes('Search Planner Agent') || prompt.includes('targeted daily search queries')) {
