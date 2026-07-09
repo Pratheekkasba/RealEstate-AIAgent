@@ -1,5 +1,6 @@
 {
   "city": "Pune",
+  "searchProvider": "tavily",
   "priority_localities": [
     "Baner", "Balewadi", "Wakad", "Hinjawadi", "Kharadi", 
     "Viman Nagar", "Koregaon Park", "Hadapsar", "Magarpatta", 
