@@ -22,8 +22,8 @@ export default function App() {
   const [adminPage, setAdminPage] = useState('overview');
 
   // City & Search State
-  const [selectedCity, setSelectedCity] = useState('Pune');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCity, setSelectedCity]   = useState('Pune');
+  const [searchOpen,   setSearchOpen]     = useState(false);
   const [selectedLocality, setSelectedLocality] = useState('Baner');
 
   // Data State
@@ -56,6 +56,18 @@ export default function App() {
         ? prev.filter(l => l !== locality)
         : [...prev, locality]
     );
+  }, []);
+
+  // ── Global Cmd+K / Ctrl+K shortcut ────────────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   // Fetch today's brief and system run data
@@ -221,24 +233,19 @@ export default function App() {
         <TopNavigation
           selectedCity={selectedCity}
           setSelectedCity={setSelectedCity}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
+          onOpenSearch={() => setSearchOpen(true)}
           onTriggerRefresh={handleRefresh}
           isRefreshing={isRefreshing}
         />
 
-        {/* Search Overlay */}
-        {searchQuery && !adminMode && (
-          <div className="absolute inset-x-0 top-16 z-50 px-6 pt-2">
-            <SearchOverlay
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              data={briefData || {}}
-              setPage={setPage}
-              setSelectedLocality={setSelectedLocality}
-            />
-          </div>
-        )}
+        {/* Search Modal */}
+        <SearchOverlay
+          open={searchOpen && !adminMode}
+          onClose={() => setSearchOpen(false)}
+          data={briefData || {}}
+          setPage={setPage}
+          setSelectedLocality={setSelectedLocality}
+        />
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-6">
