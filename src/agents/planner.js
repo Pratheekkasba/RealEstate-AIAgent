@@ -72,4 +72,17 @@ Return the response in JSON format matching this schema:
   }
 }
 
+export const plannerAgent = {
+  id: "planner",
+  name: "Search Planner Agent",
+  description: "Generates daily targeted search queries",
+  executionOrder: 1,
+  dependsOn: [],
+  capabilities: ["query_generation"],
+  tags: ["pipeline", "setup"],
+  handler: async (context) => {
+    context.queries = await runPlannerAgent(context.config);
+  }
+};
+
 export default runPlannerAgent;

@@ -103,4 +103,17 @@ export async function runInsightAgent(todayData, yesterdayData, config) {
   }
 }
 
+export const insightAgent = {
+  id: "insight",
+  name: "Insight Agent",
+  description: "Runs temporal analyses comparing today with historical database records",
+  executionOrder: 4,
+  dependsOn: ["pipeline"],
+  capabilities: ["temporal_analysis", "trend_tracking"],
+  tags: ["pipeline", "analysis"],
+  handler: async (context) => {
+    context.insights = await runInsightAgent(context.verifiedData, context.yesterdayData, context.config);
+  }
+};
+
 export default runInsightAgent;

@@ -101,4 +101,17 @@ Return a structured markdown list summarizing the findings. Keep it strictly fac
   }
 }
 
+export const researcherAgent = {
+  id: "researcher",
+  name: "Research Agent",
+  description: "Executes parallel search tracks via Tavily & Gemini Search",
+  executionOrder: 2,
+  dependsOn: ["planner"],
+  capabilities: ["web_search", "caching"],
+  tags: ["pipeline", "research"],
+  handler: async (context) => {
+    context.rawResearchData = await runResearcherAgent(context.db, context.queries, context.config);
+  }
+};
+
 export default runResearcherAgent;

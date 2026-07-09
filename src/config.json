@@ -7,5 +7,13 @@
   ],
   "cache_expiry_hours": 12,
   "quality_publish_threshold": 70,
-  "temporal_compare_days": [1, 7, 30, 90]
+  "temporal_compare_days": [1, 7, 30, 90],
+  "agents": {
+    "planner": { "enabled": true, "order": 1 },
+    "researcher": { "enabled": true, "order": 2 },
+    "pipeline": { "enabled": true, "order": 3 },
+    "insight": { "enabled": true, "order": 4 },
+    "recommendations": { "enabled": true, "order": 5 },
+    "formatter": { "enabled": true, "order": 6 }
+  }
 }

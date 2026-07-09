@@ -98,4 +98,17 @@ Format the output strictly as JSON matching this schema:
   }
 }
 
+export const recommendationsAgent = {
+  id: "recommendations",
+  name: "Broker Recommendation Agent",
+  description: "Extracts actionable insights, opportunities, and conversational talking points for brokers",
+  executionOrder: 5,
+  dependsOn: ["insight"],
+  capabilities: ["insight_generation", "broker_talking_points"],
+  tags: ["pipeline", "recommendations"],
+  handler: async (context) => {
+    context.recommendations = await runRecommendationsAgent(context.verifiedData, context.insights, context.config);
+  }
+};
+
 export default runRecommendationsAgent;

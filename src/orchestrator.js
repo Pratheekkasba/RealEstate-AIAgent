@@ -5,19 +5,36 @@ import dotenv from 'dotenv';
 
 import eventBus from './core/eventBus.js';
 import healthMonitor from './utils/healthMonitor.js';
-import runPlannerAgent from './agents/planner.js';
-import runResearcherAgent from './agents/researcher.js';
-import runPipelineAgent from './agents/pipeline.js';
-import runInsightAgent from './agents/insight.js';
-import runRecommendationsAgent from './agents/recommendations.js';
-import runFormatterAgent from './agents/formatter.js';
 import evaluateQualityGate from './utils/qualityGatekeeper.js';
+
+// Import Agent Registry and Agent Specifications
+import { agentRegistry } from './core/agentRegistry.js';
+import { plannerAgent } from './agents/planner.js';
+import { researcherAgent } from './agents/researcher.js';
+import { pipelineAgent } from './agents/pipeline.js';
+import { insightAgent } from './agents/insight.js';
+import { recommendationsAgent } from './agents/recommendations.js';
+import { formatterAgent } from './agents/formatter.js';
 
 dotenv.config();
 
 // Read config
 const configPath = path.resolve('src/config.json');
 const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+// Register Agents in the registry
+agentRegistry.register(plannerAgent);
+agentRegistry.register(researcherAgent);
+agentRegistry.register(pipelineAgent);
+agentRegistry.register(insightAgent);
+agentRegistry.register(recommendationsAgent);
+agentRegistry.register(formatterAgent);
+
+// Apply configuration overrides (enabled state & execution order)
+agentRegistry.loadConfigOverrides(config);
+
+// Bind event-driven subscribers
+agentRegistry.bindEvents();
 
 // Initialize Firebase Admin
 let db = null;
@@ -80,11 +97,9 @@ const mockDb = {
         return { writeTime: new Date() };
       }
     }),
-    // Helper to get latest documents
     orderBy: () => ({
       limit: () => ({
         get: async () => {
-          // Try to look in scratch folder for any mock_daily_briefs files
           const mockDir = path.resolve('scratch');
           if (fs.existsSync(mockDir)) {
             const files = fs.readdirSync(mockDir)
@@ -123,7 +138,6 @@ async function executeOrchestration() {
     
     try {
       const briefsColl = activeDb.collection('daily_briefs');
-      // Query the latest brief
       const snapshot = await briefsColl.orderBy('date', 'desc').limit(1).get();
       if (!snapshot.empty) {
         yesterdayData = snapshot.docs[0].data();
@@ -137,43 +151,55 @@ async function executeOrchestration() {
       eventBus.emitEvent('db:error', { op: 'fetch-yesterday', error: err.message });
     }
 
-    // 2. Run Search Planner Agent
-    const queries = await runPlannerAgent(config);
-    console.log(`[Planner] Generated queries for tracks: Projects, Market, Infrastructure.`);
+    // 2. Initialize Pipeline Context
+    const context = {
+      config,
+      db: activeDb,
+      yesterdayData,
+      queries: null,
+      rawResearchData: null,
+      verifiedData: null,
+      insights: null,
+      recommendations: null,
+      qualityGate: null,
+      formattedReport: null
+    };
 
-    // 3. Run Researcher Agent (with Google Search Grounding & Cache check)
-    const researchData = await runResearcherAgent(activeDb, queries, config);
-    console.log(`[Researcher] Live/cached research queries complete.`);
+    // 3. Resolve Enabled Agents in correct execution order
+    const enabledAgents = agentRegistry.getEnabledAgents();
+    console.log(`[Orchestrator] Loaded ${enabledAgents.length} active agents:`, enabledAgents.map(a => a.id).join(' -> '));
 
-    // 4. Run Duplicate Detection & Verification Pipeline
-    const verifiedData = await runPipelineAgent(researchData, config);
-    console.log(`[Verification] Verified ${verifiedData.projects.length} projects and ${verifiedData.news.length} news points.`);
+    // 4. Run Agents in sequence
+    for (const agent of enabledAgents) {
+      console.log(`\n[Orchestrator] Running agent: ${agent.name} [${agent.id}]`);
+      
+      // Inject Quality Gate calculations dynamically before Formatter execution
+      if (agent.id === 'formatter') {
+        const plannedCount = (context.queries?.projects?.length || 0) + 
+                             (context.queries?.market?.length || 0) + 
+                             (context.queries?.infrastructure?.length || 0);
+        const successfulCount = plannedCount; // Assumes search completed
+        
+        context.qualityGate = evaluateQualityGate({
+          plannedSearchesCount: plannedCount,
+          successfulSearchesCount: successfulCount,
+          verifiedFacts: context.verifiedData.news.concat(context.verifiedData.projects),
+          rejectedFacts: context.verifiedData.rejected,
+          threshold: config.quality_publish_threshold || 70
+        });
+        console.log(`[Quality Gate] Score: ${context.qualityGate.qualityScore}% | Status: ${context.qualityGate.status.toUpperCase()}`);
+      }
 
-    // 5. Run Insight Agent (Today vs Yesterday)
-    const insights = await runInsightAgent(verifiedData, yesterdayData, config);
-    console.log(`[Insight] Temporal comparison complete.`);
+      await agent.handler(context);
+    }
 
-    // 6. Run Broker Recommendations Agent (Talking Points)
-    const recommendations = await runRecommendationsAgent(verifiedData, insights, config);
-    console.log(`[Recommendations] Created opportunities and caution briefs.`);
+    const formattedReport = context.formattedReport;
+    const qualityGate = context.qualityGate;
 
-    // 7. Evaluate Quality Gate
-    const plannedCount = (queries.projects?.length || 0) + (queries.market?.length || 0) + (queries.infrastructure?.length || 0);
-    // Assumes successful search if no error was thrown
-    const successfulCount = plannedCount; 
-    
-    const qualityGate = evaluateQualityGate({
-      plannedSearchesCount: plannedCount,
-      successfulSearchesCount: successfulCount,
-      verifiedFacts: verifiedData.news.concat(verifiedData.projects),
-      rejectedFacts: verifiedData.rejected,
-      threshold: config.quality_publish_threshold || 70
-    });
-    console.log(`[Quality Gate] Score: ${qualityGate.qualityScore}% | Status: ${qualityGate.status.toUpperCase()}`);
+    if (!formattedReport || !formattedReport.markdown) {
+      throw new Error("No briefing report was formatted. Check Formatter Agent.");
+    }
 
-    // 8. Run Formatter Agent (Compile MD & JSON Payload)
-    const formattedReport = runFormatterAgent(verifiedData, insights, recommendations, qualityGate, config);
-    
     // Save output path
     const outputDir = path.resolve('output');
     if (!fs.existsSync(outputDir)) {
@@ -182,12 +208,11 @@ async function executeOrchestration() {
     fs.writeFileSync(path.resolve(outputDir, 'latest_brief.md'), formattedReport.markdown, 'utf8');
     fs.writeFileSync(path.resolve(outputDir, 'latest_brief.json'), JSON.stringify(formattedReport.payload, null, 2), 'utf8');
 
-    // 9. Sync output and health logs to Database
+    // 5. Sync output and health logs to Database
     const todayDate = new Date().toISOString().substring(0, 10);
     const docId = todayDate;
 
     eventBus.emitEvent('db:start', { op: 'save-brief' });
-    // Write both daily_briefs/{date} and daily_briefs/today for the website
     await activeDb.collection('daily_briefs').doc(docId).set(formattedReport.payload);
     await activeDb.collection('daily_briefs').doc('today').set(formattedReport.payload);
     eventBus.emitEvent('db:success', { op: 'save-brief', writes: 2 });
@@ -200,7 +225,7 @@ async function executeOrchestration() {
     eventBus.emitEvent('db:success', { op: 'save-health', writes: 2 });
 
     console.log(`\n======================================================`);
-    console.log(`Daily Brief successfully processed!`);
+    console.log(`Daily Brief successfully processed via Agent Registry!`);
     console.log(`Status: ${qualityGate.status.toUpperCase()}`);
     console.log(`Quality Score: ${qualityGate.qualityScore}%`);
     console.log(`Brief written to output/latest_brief.md`);
@@ -224,6 +249,7 @@ async function executeOrchestration() {
   }
 }
 
+// Execute if run directly
 const isMain = process.argv[1] && path.resolve(process.argv[1]).replace(/\\/g, '/').endsWith('src/orchestrator.js');
 if (isMain) {
   executeOrchestration();

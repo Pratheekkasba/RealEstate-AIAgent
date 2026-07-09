@@ -180,4 +180,23 @@ ${sourcesList}
   };
 }
 
+export const formatterAgent = {
+  id: "formatter",
+  name: "Formatter Agent",
+  description: "Formats the final report payloads in Markdown and structured JSON layouts",
+  executionOrder: 6,
+  dependsOn: ["recommendations"],
+  capabilities: ["reporting", "formatting"],
+  tags: ["pipeline", "presentation"],
+  handler: async (context) => {
+    context.formattedReport = runFormatterAgent(
+      context.verifiedData,
+      context.insights,
+      context.recommendations,
+      context.qualityGate,
+      context.config
+    );
+  }
+};
+
 export default runFormatterAgent;

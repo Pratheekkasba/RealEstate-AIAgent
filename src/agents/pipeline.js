@@ -203,4 +203,17 @@ Return the output in JSON format matching this schema:
   }
 }
 
+export const pipelineAgent = {
+  id: "pipeline",
+  name: "Pipeline Verification Agent",
+  description: "Deduplicates projects, checks facts/numbers, and resolves conflicts",
+  executionOrder: 3,
+  dependsOn: ["researcher"],
+  capabilities: ["extraction", "entity_resolution", "verification"],
+  tags: ["pipeline", "verification"],
+  handler: async (context) => {
+    context.verifiedData = await runPipelineAgent(context.rawResearchData, context.config);
+  }
+};
+
 export default runPipelineAgent;
