@@ -6,6 +6,7 @@ import {
   ArrowUpRight, CheckCircle, Clock, ChevronRight,
   BarChart2, ShieldCheck, AlertTriangle, Activity,
 } from 'lucide-react';
+import { Timeline, buildTimelineEvents } from '../../components/timeline/Timeline.jsx';
 
 // ─── Animation Variants ────────────────────────────────────────────────────────
 const fadeUp = {
@@ -333,69 +334,31 @@ function NewsCard({ market, locality }) {
   );
 }
 
-function TimelineCard({ projects, infraItems, locality }) {
-  const events = [];
+// TimelineCard now delegates to the shared <Timeline /> component
+function TimelineCard({ projects, infraItems, briefData, locality }) {
+  const events = useMemo(() => {
+    // Use the shared builder, scoped to this locality
+    const derived = buildTimelineEvents(briefData || {}, locality);
 
-  const today = new Date();
-  const fmtRelative = (days) => {
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7)  return `${days}d ago`;
-    if (days < 30) return `${Math.floor(days / 7)}w ago`;
-    return `${Math.floor(days / 30)}mo ago`;
-  };
-
-  projects.forEach(p => {
-    events.push({ label: `${p.projectName} pricing verified`, sub: `by ${p.builder}`, days: 0, type: 'price', color: 'bg-blue-600' });
-    if (p.status === 'New Launch') {
-      events.push({ label: `${p.projectName} launched`, sub: `${p.locality} • ${p.startingPrice}`, days: 3, type: 'launch', color: 'bg-indigo-600' });
+    // Fallback when no data yet
+    if (derived.length === 0) {
+      return [
+        { id: 'f1', daysAgo: 0, label: 'Price index compiled', sublabel: locality, type: 'price' },
+        { id: 'f2', daysAgo: 0, label: 'Market brief published', sublabel: 'AI Engine', type: 'brief' },
+        { id: 'f3', daysAgo: 2, label: 'Locality profile updated', sublabel: 'Automated run', type: 'update' },
+      ];
     }
-    if (p.reraRegistered) {
-      events.push({ label: `${p.projectName} RERA verified`, sub: 'Maharashtra RERA Portal', days: 5, type: 'rera', color: 'bg-emerald-600' });
-    }
-  });
-
-  infraItems.forEach(infra => {
-    events.push({ label: infra.title, sub: `Status: ${infra.status}`, days: 7, type: 'infra', color: 'bg-amber-500' });
-  });
-
-  if (events.length === 0) {
-    events.push(
-      { label: 'Price index compiled', sub: locality, days: 0,  type: 'price', color: 'bg-blue-600' },
-      { label: 'Market brief published', sub: 'AI Engine', days: 0,  type: 'brief', color: 'bg-indigo-600' },
-      { label: 'Locality profile updated', sub: 'Automated', days: 2,  type: 'update', color: 'bg-slate-400' },
-    );
-  }
-
-  const sorted = events
-    .sort((a, b) => a.days - b.days)
-    .slice(0, 8);
+    return derived.slice(0, 10);
+  }, [briefData, locality]);
 
   return (
-    <motion.div variants={fadeUp} custom={7} className="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-sm">
-      <SectionLabel icon={Calendar} label="Activity Timeline" />
-      <div className="relative pl-5">
-        <div className="absolute left-1.5 top-2 bottom-2 w-px bg-gradient-to-b from-blue-200 via-slate-200 to-transparent" />
-        <div className="space-y-5">
-          {sorted.map((ev, idx) => (
-            <motion.div
-              key={idx}
-              variants={fadeUp}
-              custom={idx}
-              className="relative flex gap-4 items-start"
-            >
-              <span className={`absolute -left-[17px] w-2.5 h-2.5 rounded-full border-2 border-white shrink-0 mt-0.5 ${ev.color}`} />
-              <div>
-                <div className="text-xs font-bold text-slate-700 leading-snug">{ev.label}</div>
-                <div className="text-[10px] text-slate-400 mt-0.5 font-medium">{ev.sub}</div>
-              </div>
-              <span className="ml-auto text-[9px] font-bold text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
-                {fmtRelative(ev.days)}
-              </span>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+    <motion.div variants={fadeUp} custom={7}>
+      <Timeline
+        events={events}
+        title="Activity Timeline"
+        grouped
+        emptyMessage={`No events recorded for ${locality} yet.`}
+      />
     </motion.div>
   );
 }
@@ -665,6 +628,7 @@ export function LocalitiesDirectory({
           <TimelineCard
             projects={localityProjects}
             infraItems={localityInfra}
+            briefData={briefData}
             locality={currentLocality}
           />
         </motion.div>

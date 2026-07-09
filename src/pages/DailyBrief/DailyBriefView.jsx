@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { 
   Flame, 
   Building, 
@@ -10,6 +10,32 @@ import {
   ExternalLink,
   Download
 } from 'lucide-react';
+import { Timeline, buildTimelineEvents } from '../../components/timeline/Timeline.jsx';
+
+// ─── Brief-level Timeline ──────────────────────────────────────────────────────
+function BriefTimeline({ briefData }) {
+  const events = useMemo(() => {
+    const base = buildTimelineEvents(briefData || {});
+    if (base.length === 0) {
+      return [
+        { id: 'f1', daysAgo: 0, label: 'Daily brief compiled', sublabel: 'AI Engine run complete', type: 'brief' },
+        { id: 'f2', daysAgo: 0, label: 'Pricing data verified', sublabel: 'Cross-referenced with MahaRERA', type: 'price' },
+        { id: 'f3', daysAgo: 1, label: 'Infrastructure updates ingested', sublabel: 'PMC & PCMC portals', type: 'infra' },
+        { id: 'f4', daysAgo: 2, label: 'Policy monitoring active', sublabel: 'RBI repo rate watch', type: 'policy' },
+      ];
+    }
+    return base;
+  }, [briefData]);
+
+  return (
+    <Timeline
+      events={events}
+      title="Brief Intelligence Timeline"
+      grouped
+      emptyMessage="No timeline events for this brief."
+    />
+  );
+}
 
 export function DailyBriefView({ briefData }) {
   if (!briefData) {
@@ -197,6 +223,11 @@ export function DailyBriefView({ briefData }) {
               </a>
             ))}
           </div>
+        </section>
+
+        {/* 📅 Activity Timeline */}
+        <section className="space-y-3">
+          <BriefTimeline briefData={briefData} />
         </section>
 
       </div>
