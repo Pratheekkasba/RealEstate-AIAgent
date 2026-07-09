@@ -14,6 +14,7 @@ import WatchlistPage from './pages/Watchlist/WatchlistPage.jsx';
 import BriefArchive from './pages/Archive/BriefArchive.jsx';
 import DailyBriefView from './pages/DailyBrief/DailyBriefView.jsx';
 import AdminConsole from './pages/Admin/AdminConsole.jsx';
+import { AiBriefAssistant } from './components/assistant/AiBriefAssistant.jsx';
 
 export default function App() {
   // Navigation State
@@ -306,6 +307,14 @@ export default function App() {
           )}
         </main>
       </div>
+
+      {/* ── Floating AI Brief Assistant — visible in customer mode only ── */}
+      {!adminMode && !loading && (
+        <AiBriefAssistant
+          briefData={briefData}
+          archive={archiveBriefs}
+        />
+      )}
     </div>
   );
 }
