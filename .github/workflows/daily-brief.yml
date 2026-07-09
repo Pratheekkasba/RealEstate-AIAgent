@@ -1,0 +1,38 @@
+name: Daily Real Estate Brief Engine
+
+on:
+  schedule:
+    # Run daily at 02:30 UTC / 08:00 AM IST
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    # Allows manual runs from GitHub UI
+    inputs:
+      city:
+        description: 'Target city for briefing'
+        required: true
+        default: 'Pune'
+  repository_dispatch:
+    # Allows manual trigger from the web dashboard
+    types: [manual_trigger]
+
+jobs:
+  run-agents:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Run Orchestrator
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: npm start

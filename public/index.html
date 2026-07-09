@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Estate Intelligence Dashboard</title>
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Marked Markdown Parser -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  
+  <!-- Firebase Client SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="background-glow"></div>
+  
+  <div class="dashboard-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <i data-lucide="building-2" class="brand-icon"></i>
+        <div>
+          <h1>Real Estate Intelligence Engine</h1>
+          <p id="city-subtitle">Daily Pune Market Briefing</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-trigger-run" class="btn btn-primary">
+          <i data-lucide="refresh-cw"></i>
+          <span>Trigger Live Research</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Metrics Bar -->
+    <section class="metrics-grid">
+      <div class="metric-card glass">
+        <div class="metric-info">
+          <h3>Report Quality Score</h3>
+          <p id="metric-quality">--%</p>
+        </div>
+        <div class="metric-icon quality-accent">
+          <i data-lucide="shield-check"></i>
+        </div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-info">
+          <h3>Research Coverage</h3>
+          <p id="metric-coverage">--%</p>
+        </div>
+        <div class="metric-icon coverage-accent">
+          <i data-lucide="radar"></i>
+        </div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-info">
+          <h3>Data Freshness</h3>
+          <p id="metric-freshness">--%</p>
+        </div>
+        <div class="metric-icon freshness-accent">
+          <i data-lucide="sparkles"></i>
+        </div>
+      </div>
+
+      <div class="metric-card glass">
+        <div class="metric-info">
+          <h3>Verified Facts</h3>
+          <p id="metric-facts">--</p>
+        </div>
+        <div class="metric-icon facts-accent">
+          <i data-lucide="database"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Left Column: Report Contents -->
+      <section class="report-section glass">
+        <div class="card-header">
+          <h2><i data-lucide="file-text"></i> Today's Verified Briefing</h2>
+          <span id="report-date" class="badge">July 9, 2026</span>
+        </div>
+        <div id="brief-content" class="markdown-body">
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading the latest real estate brief...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Status & Debug Logs -->
+      <aside class="sidebar-section">
+        <div class="sidebar-card glass">
+          <div class="card-header">
+            <h2><i data-lucide="activity"></i> Engine Health Logs</h2>
+            <span id="health-status-dot" class="status-dot green"></span>
+          </div>
+          <div class="logs-container" id="health-logs">
+            <div class="log-entry">
+              <span class="log-time">[System]</span> Initializing dashboard. Listening for live updates...
+            </div>
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>&copy; 2026 Real Estate Intelligence Engine. Deployed 100% Free via GitHub Actions & Firebase Spark.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

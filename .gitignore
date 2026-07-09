@@ -1,0 +1,9 @@
+node_modules/
+.env
+run.log
+scratch/
+output/test_*
+output/latest_*
+.firebase/
+.DS_Store
+*.log

@@ -1,0 +1,11 @@
+{
+  "city": "Pune",
+  "priority_localities": [
+    "Baner", "Balewadi", "Wakad", "Hinjawadi", "Kharadi", 
+    "Viman Nagar", "Koregaon Park", "Hadapsar", "Magarpatta", 
+    "Kothrud", "Pimple Saudagar", "Undri", "Moshi", "Ravet", "Tathawade"
+  ],
+  "cache_expiry_hours": 12,
+  "quality_publish_threshold": 70,
+  "temporal_compare_days": [1, 7, 30, 90]
+}
