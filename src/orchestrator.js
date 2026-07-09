@@ -8,6 +8,8 @@ import healthMonitor from './utils/healthMonitor.js';
 import evaluateQualityGate from './utils/qualityGatekeeper.js';
 
 import validateEntity from './schemas/validators/schemaValidator.js';
+import runTracker from './observability/RunTracker.js';
+import RunSummary from './observability/RunSummary.js';
 
 // Import Agent Registry and Agent Specifications
 import { agentRegistry } from './core/agentRegistry.js';
@@ -128,9 +130,12 @@ const mockDb = {
 const activeDb = useMockDb ? mockDb : db;
 
 async function executeOrchestration() {
+  const runId = runTracker.start(config.city, 'manual');
+
   console.log(`\n======================================================`);
   console.log(`Starting Real Estate Intelligence Engine run for: ${config.city}`);
   console.log(`Local Time: ${new Date().toLocaleString()}`);
+  console.log(`Run ID: ${runId}`);
   console.log(`======================================================\n`);
 
   try {
@@ -155,6 +160,7 @@ async function executeOrchestration() {
 
     // 2. Initialize Pipeline Context
     const context = {
+      runId,
       config,
       db: activeDb,
       yesterdayData,
@@ -242,6 +248,11 @@ async function executeOrchestration() {
     await activeDb.collection('health_status').doc('latest').set(healthSummary);
     eventBus.emitEvent('db:success', { op: 'save-health', writes: 2 });
 
+    // 6. Complete and Publish Observability Run Metrics
+    const finalStatus = qualityGate.passes ? "success" : "partial_success";
+    runTracker.complete(finalStatus);
+    await RunSummary.publish(activeDb, qualityGate);
+
     console.log(`\n======================================================`);
     console.log(`Daily Brief successfully processed via Agent Registry!`);
     console.log(`Status: ${qualityGate.status.toUpperCase()}`);
@@ -255,6 +266,10 @@ async function executeOrchestration() {
     healthMonitor.status.agents.formatter.status = 'failed';
     healthMonitor.status.agents.formatter.error = err.message;
     
+    // Complete and publish failed run telemetry
+    runTracker.complete("failed");
+    await RunSummary.publish(activeDb, context.qualityGate);
+
     const healthSummary = healthMonitor.complete();
     try {
       const todayDate = new Date().toISOString().substring(0, 10);

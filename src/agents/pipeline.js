@@ -147,8 +147,12 @@ Return the output in JSON format matching this schema:
       }
     }).filter(Boolean);
 
+    eventBus.emitEvent('entity:resolved', { count: rawProjects.length });
+
     // --- Step 2: Entity Resolution & Duplicate Merging (Local) ---
     const resolvedProjects = resolveProjectEntities(rawProjects);
+    
+    eventBus.emitEvent('entity:merged', { count: rawProjects.length - resolvedProjects.length });
 
     // --- Step 3: Run Verification Pipeline ---
     const verifiedProjects = [];

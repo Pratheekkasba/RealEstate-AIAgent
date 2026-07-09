@@ -33,6 +33,7 @@ export async function runResearcherAgent(db, queries, config) {
         const cachedResult = await cache.get(query);
         if (cachedResult) {
           cacheHits++;
+          eventBus.emitEvent('cache:hit', {});
           results[track].push({
             query,
             source: 'cache',
@@ -43,6 +44,7 @@ export async function runResearcherAgent(db, queries, config) {
 
         // 2. Perform Research using Provider Architecture
         queriesExecuted++;
+        eventBus.emitEvent('cache:miss', {});
         let searchResults = [];
         let searchSource = primaryProviderName;
 
@@ -51,6 +53,7 @@ export async function runResearcherAgent(db, queries, config) {
           searchResults = await primaryProvider.search(query);
         } catch (providerError) {
           console.warn(`[Researcher] Primary search provider "${primaryProviderName}" failed: ${providerError.message}. Falling back to Gemini Search.`);
+          eventBus.emitEvent('search:fallback', { query, error: providerError.message });
           
           try {
             // Fallback to Gemini search provider
