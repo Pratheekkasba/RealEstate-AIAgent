@@ -15,6 +15,8 @@ import BriefArchive from './pages/Archive/BriefArchive.jsx';
 import DailyBriefView from './pages/DailyBrief/DailyBriefView.jsx';
 import AdminConsole from './pages/Admin/AdminConsole.jsx';
 import { AiBriefAssistant } from './components/assistant/AiBriefAssistant.jsx';
+import { PageSkeleton } from './components/ui/SkeletonCard.jsx';
+import { EmptyState } from './components/ui/EmptyState.jsx';
 
 export default function App() {
   // Navigation State
@@ -278,24 +280,17 @@ export default function App() {
             </div>
           )}
 
-          {/* Loading State */}
+          {/* Loading State — structured skeleton matching actual page layout */}
           {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-32 bg-slate-200/50 animate-pulse rounded-3xl" />
-              ))}
-            </div>
+            <PageSkeleton />
           ) : error ? (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-3xl p-8 text-center">
-              <h3 className="font-bold text-lg mb-1">Failed to Connect to Firestore</h3>
-              <p className="text-sm text-red-600">{error}</p>
-              <button
-                onClick={handleRefresh}
-                className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-semibold transition-colors"
-              >
-                Retry
-              </button>
-            </div>
+            <EmptyState
+              icon="error"
+              variant="error"
+              title="Failed to connect to Firestore"
+              body={error}
+              onRetry={handleRefresh}
+            />
           ) : adminMode ? (
             <AdminConsole
               latestRun={latestRun}
