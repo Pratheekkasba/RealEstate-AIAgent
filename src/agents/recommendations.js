@@ -5,6 +5,7 @@ export async function runRecommendationsAgent(verifiedData, insights, config) {
   eventBus.emitEvent('agent:start', { name: 'recommendations' });
 
   const city = config.city || 'Pune';
+  const combinedNews = (verifiedData.market || []).concat(verifiedData.infrastructure || []).concat(verifiedData.news || []);
 
   const prompt = `
 You are the Broker Recommendation Agent in a Real Estate Intelligence Engine.
@@ -14,7 +15,7 @@ Verified Projects:
 ${JSON.stringify(verifiedData.projects)}
 
 Verified News & Infrastructure:
-${JSON.stringify(verifiedData.news)}
+${JSON.stringify(combinedNews)}
 
 Temporal Insights (Today vs Yesterday):
 ${JSON.stringify(insights)}

@@ -1,32 +1,52 @@
 import eventBus from '../core/eventBus.js';
+import validateEntity from '../schemas/validators/schemaValidator.js';
+import crypto from 'crypto';
 
 export async function runInsightAgent(todayData, yesterdayData, config) {
   eventBus.emitEvent('agent:start', { name: 'insight' });
 
-  const insights = {
+  const rawInsights = {
     priceMovements: [],
     newLaunches: [],
     policyChanges: [],
     trends: []
   };
 
+  const validatedInsights = [];
+
+  const createInsight = (category, description, supportingFacts = []) => {
+    const hash = crypto.createHash('sha256').update(description).digest('hex').substring(0, 16);
+    try {
+      return validateEntity('insight', {
+        insightId: hash,
+        category,
+        description,
+        supportingFacts,
+        generatedAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.warn(`[Insight] Failed to validate insight entity:`, err.message);
+      return null;
+    }
+  };
+
   try {
     // If we have no historical data, we return empty insights
     if (!yesterdayData) {
       eventBus.emitEvent('agent:completed', { name: 'insight', data: { count: 0 } });
-      return insights;
+      return validatedInsights;
     }
 
     const yesterdayProjects = yesterdayData.projects || [];
-    const yesterdayNews = yesterdayData.news || [];
+    const yesterdayMarket = yesterdayData.market || yesterdayData.news || [];
 
     // 1. New Project Launch Detection
-    for (const todayProj of todayData.projects) {
+    for (const todayProj of todayData.projects || []) {
       const match = yesterdayProjects.find(y => 
         y.projectName.toLowerCase() === todayProj.projectName.toLowerCase()
       );
       if (!match) {
-        insights.newLaunches.push({
+        rawInsights.newLaunches.push({
           projectName: todayProj.projectName,
           builder: todayProj.builder,
           locality: todayProj.locality,
@@ -36,13 +56,12 @@ export async function runInsightAgent(todayData, yesterdayData, config) {
     }
 
     // 2. Price Movement Tracking
-    for (const todayProj of todayData.projects) {
+    for (const todayProj of todayData.projects || []) {
       const match = yesterdayProjects.find(y => 
         y.projectName.toLowerCase() === todayProj.projectName.toLowerCase()
       );
 
       if (match && todayProj.pricePerSqFt && match.pricePerSqFt) {
-        // Parse numeric values (e.g. "8,500/sq.ft" -> 8500)
         const parsePrice = (str) => {
           const num = parseFloat(String(str).replace(/[^0-9.]/g, ''));
           return isNaN(num) ? null : num;
@@ -53,7 +72,7 @@ export async function runInsightAgent(todayData, yesterdayData, config) {
 
         if (todayPriceVal && yesterdayPriceVal && todayPriceVal !== yesterdayPriceVal) {
           const pctChange = ((todayPriceVal - yesterdayPriceVal) / yesterdayPriceVal) * 100;
-          insights.priceMovements.push({
+          rawInsights.priceMovements.push({
             projectName: todayProj.projectName,
             locality: todayProj.locality,
             oldPrice: match.pricePerSqFt,
@@ -66,50 +85,62 @@ export async function runInsightAgent(todayData, yesterdayData, config) {
     }
 
     // 3. New Policy Updates
-    for (const todayNewsItem of todayData.news) {
+    const todayMarketItems = todayData.market || todayData.news || [];
+    for (const todayNewsItem of todayMarketItems) {
       const isPolicy = todayNewsItem.category === 'Policy' || todayNewsItem.category === 'Interest Rates';
       if (isPolicy) {
-        const match = yesterdayNews.find(y => 
-          y.headline.toLowerCase() === todayNewsItem.headline.toLowerCase()
+        const match = yesterdayMarket.find(y => 
+          (y.headline || y.title || '').toLowerCase() === (todayNewsItem.headline || todayNewsItem.title || '').toLowerCase()
         );
         if (!match) {
-          insights.policyChanges.push({
+          rawInsights.policyChanges.push({
             headline: todayNewsItem.headline,
             summary: todayNewsItem.summary,
-            impactLevel: todayNewsItem.impactLevel
+            impact: todayNewsItem.impact || todayNewsItem.impactOnBuyers
           });
         }
       }
     }
 
-    // 4. Future-Ready Trend Log (7/30/90 day comparisons mock-ups)
-    // We log that temporal comparisons are completed
-    insights.trends.push({
-      metric: 'Historical Trend Tracking',
-      description: 'Temporal databases initialized. 7-day and 30-day index matrices are ready to receive data stream.'
-    });
+    // Convert raw insights to validated Insight Entities
+    for (const pm of rawInsights.priceMovements) {
+      const insight = createInsight('Trend', `${pm.projectName} in ${pm.locality} price moved ${pm.direction} by ${pm.percentage}% (from ${pm.oldPrice} to ${pm.newPrice}).`, [pm.projectName]);
+      if (insight) validatedInsights.push(insight);
+    }
+
+    for (const nl of rawInsights.newLaunches) {
+      const insight = createInsight('Launch', `New project launch detected: "${nl.projectName}" by builder ${nl.builder || 'Unknown'} in ${nl.locality} (starting: ${nl.startingPrice || 'On Request'}).`, [nl.projectName]);
+      if (insight) validatedInsights.push(insight);
+    }
+
+    for (const pc of rawInsights.policyChanges) {
+      const insight = createInsight('Policy', `Policy change: "${pc.headline}". Summary: ${pc.summary} (Impact: ${pc.impact || 'High'}).`, [pc.headline]);
+      if (insight) validatedInsights.push(insight);
+    }
+
+    // Add Trend Log Insight
+    const trendInsight = createInsight('Trend', 'Historical Trend Tracking: Temporal databases initialized. 7-day and 30-day index matrices are ready to receive data stream.');
+    if (trendInsight) validatedInsights.push(trendInsight);
 
     eventBus.emitEvent('agent:completed', { 
       name: 'insight', 
-      data: { 
-        count: insights.priceMovements.length + insights.newLaunches.length + insights.policyChanges.length 
-      } 
+      data: { count: validatedInsights.length } 
     });
 
-    return insights;
+    return validatedInsights;
   } catch (err) {
     eventBus.emitEvent('agent:error', { name: 'insight', error: err.message });
-    return insights; // Safe fallback
+    return validatedInsights; // Safe fallback
   }
 }
 
 export const insightAgent = {
   id: "insight",
   name: "Insight Agent",
-  description: "Runs temporal analyses comparing today with historical database records",
+  description: "Runs temporal analyses and outputs normalized Insight entities",
   executionOrder: 4,
   dependsOn: ["pipeline"],
-  capabilities: ["temporal_analysis", "trend_tracking"],
+  capabilities: ["temporal_analysis", "trend_tracking", "schema_validation"],
   tags: ["pipeline", "analysis"],
   handler: async (context) => {
     context.insights = await runInsightAgent(context.verifiedData, context.yesterdayData, context.config);

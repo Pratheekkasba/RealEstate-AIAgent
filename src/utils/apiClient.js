@@ -111,26 +111,25 @@ export async function callGemini({
             sourceUrl: "https://maharera.maharashtra.gov.in"
           }
         ],
-        news: [
+        market: [
           {
-            headline: "RBI keeps Repo Rate unchanged at 6.5%",
-            category: "Interest Rates",
-            summary: "The Reserve Bank of India decided to hold interest rates steady in its latest monetary policy meeting, maintaining home loan rates between 8.4% and 9.5% for most major banks.",
-            whyItMatters: "Stable borrowing costs offer buyers a predictable planning window.",
-            impactOnBuyers: "Home loan interest rates will remain stable for the next quarter.",
-            impactLevel: "High",
-            source: "Reserve Bank of India",
-            sourceUrl: "https://www.rbi.org.in"
-          },
+            "headline": "RBI keeps Repo Rate unchanged at 6.5%",
+            "category": "Interest Rates",
+            "summary": "The Reserve Bank of India decided to hold interest rates steady in its latest monetary policy meeting, maintaining home loan rates between 8.4% and 9.5% for most major banks.",
+            "impact": "Home loan interest rates will remain stable for the next quarter.",
+            "source": "Reserve Bank of India",
+            "sourceUrl": "https://www.rbi.org.in"
+          }
+        ],
+        infrastructure: [
           {
-            headline: "Pune Metro Line 3 Hinjewadi-Shivajinagar testing begins",
-            category: "Infrastructure",
-            summary: "Trial runs have successfully commenced on Pune Metro Line 3, connecting Hinjewadi IT park to central Shivajinagar. Commercial operations are targeted for late 2026.",
-            whyItMatters: "Significantly reduces commute times, boosting rental demand and property values.",
-            impactOnBuyers: "Commute times to Hinjewadi IT Park will drop by 40 minutes once fully operational.",
-            impactLevel: "High",
-            source: "Pune Metro Rail Corporation",
-            sourceUrl: "https://www.punemetrorail.org"
+            "title": "Pune Metro Line 3 Hinjewadi-Shivajinagar testing begins",
+            "authority": "Pune Metro Rail Corporation",
+            "status": "Testing",
+            "affectedAreas": ["Hinjewadi", "Shivajinagar"],
+            "expectedImpact": "Trial runs have successfully commenced on Pune Metro Line 3, connecting Hinjewadi IT park to central Shivajinagar. Commute times will drop by 40 minutes once fully operational.",
+            "source": "Pune Metro Rail Corporation",
+            "sourceUrl": "https://www.punemetrorail.org"
           }
         ]
       });

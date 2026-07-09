@@ -7,6 +7,8 @@ import eventBus from './core/eventBus.js';
 import healthMonitor from './utils/healthMonitor.js';
 import evaluateQualityGate from './utils/qualityGatekeeper.js';
 
+import validateEntity from './schemas/validators/schemaValidator.js';
+
 // Import Agent Registry and Agent Specifications
 import { agentRegistry } from './core/agentRegistry.js';
 import { plannerAgent } from './agents/planner.js';
@@ -180,11 +182,15 @@ async function executeOrchestration() {
                              (context.queries?.infrastructure?.length || 0);
         const successfulCount = plannedCount; // Assumes search completed
         
+        const verifiedFacts = (context.verifiedData.projects || [])
+          .concat(context.verifiedData.market || [])
+          .concat(context.verifiedData.infrastructure || []);
+
         context.qualityGate = evaluateQualityGate({
           plannedSearchesCount: plannedCount,
           successfulSearchesCount: successfulCount,
-          verifiedFacts: context.verifiedData.news.concat(context.verifiedData.projects),
-          rejectedFacts: context.verifiedData.rejected,
+          verifiedFacts: verifiedFacts,
+          rejectedFacts: context.verifiedData.rejected || [],
           threshold: config.quality_publish_threshold || 70
         });
         console.log(`[Quality Gate] Score: ${context.qualityGate.qualityScore}% | Status: ${context.qualityGate.status.toUpperCase()}`);
@@ -211,6 +217,18 @@ async function executeOrchestration() {
     // 5. Sync output and health logs to Database
     const todayDate = new Date().toISOString().substring(0, 10);
     const docId = todayDate;
+
+    // Validate payloads at the persistence boundary
+    try {
+      console.log(`[Orchestrator] Running final schema validation boundary check...`);
+      (formattedReport.payload.projects || []).forEach(p => validateEntity('project', p));
+      (formattedReport.payload.market || []).forEach(m => validateEntity('market', m));
+      (formattedReport.payload.infrastructure || []).forEach(i => validateEntity('infrastructure', i));
+      (formattedReport.payload.insights || []).forEach(ins => validateEntity('insight', ins));
+      console.log(`[Orchestrator] Schema validation boundary check passed successfully!`);
+    } catch (valErr) {
+      console.warn(`[Orchestrator] Warning: Payload validation failed at persistence boundary: ${valErr.message}`);
+    }
 
     eventBus.emitEvent('db:start', { op: 'save-brief' });
     await activeDb.collection('daily_briefs').doc(docId).set(formattedReport.payload);
