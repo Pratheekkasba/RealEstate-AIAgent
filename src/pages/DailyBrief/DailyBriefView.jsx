@@ -210,18 +210,24 @@ export function DailyBriefView({ briefData }) {
             📚 Grounding References
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            {projects.flatMap(p => p.sources || []).slice(0, 4).map((src, idx) => (
-              <a
-                key={idx}
-                href={src.url}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl hover:bg-slate-50 hover:border-slate-300 text-xs text-slate-700 font-semibold transition-all"
-              >
-                <span>🔗 {src.title || src.domain || 'Source Reference'}</span>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-              </a>
-            ))}
+            {projects.flatMap(p => p.sources || []).slice(0, 4).map((src, idx) => {
+              const displayTitle = (!src.title || src.title === 'unknown')
+                ? (src.url && !src.url.startsWith('http') ? src.url : 'Source Reference')
+                : src.title;
+              const safeUrl = (src.url && src.url.startsWith('http')) ? src.url : '#';
+              return (
+                <a
+                  key={idx}
+                  href={safeUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center justify-between p-3 border border-slate-200/80 rounded-xl hover:bg-slate-50 hover:border-slate-300 text-xs text-slate-700 font-semibold transition-all focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:outline-none"
+                >
+                  <span>🔗 {displayTitle}</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                </a>
+              );
+            })}
           </div>
         </section>
 

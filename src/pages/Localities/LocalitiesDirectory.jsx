@@ -7,6 +7,7 @@ import {
   BarChart2, ShieldCheck, AlertTriangle, Activity,
 } from 'lucide-react';
 import { Timeline, buildTimelineEvents } from '../../components/timeline/Timeline.jsx';
+import { EmptyState } from '../../components/ui/EmptyState.jsx';
 
 // ─── Animation Variants ────────────────────────────────────────────────────────
 const fadeUp = {
@@ -50,14 +51,6 @@ function SectionLabel({ icon: Icon, label }) {
     <div className="flex items-center gap-2 mb-4">
       <Icon className="w-4 h-4 text-slate-400" />
       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{label}</span>
-    </div>
-  );
-}
-
-function EmptyState({ message }) {
-  return (
-    <div className="py-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-2xl">
-      {message}
     </div>
   );
 }
@@ -116,7 +109,12 @@ function BuilderActivityCard({ projects, locality }) {
     <motion.div variants={fadeUp} custom={3} className="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-sm">
       <SectionLabel icon={Building} label="Builder Activity" />
       {builders.length === 0 ? (
-        <EmptyState message={`No builder data for ${locality} today.`} />
+        <EmptyState
+          icon={Building}
+          title="No Builder Activity"
+          body={`No builder project logs were found in ${locality} today.`}
+          compact
+        />
       ) : (
         <div className="space-y-2">
           {builders.map(([builder, projs], i) => (
@@ -160,7 +158,12 @@ function ProjectsCard({ projects, locality }) {
     <motion.div variants={fadeUp} custom={4} className="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-sm">
       <SectionLabel icon={Building} label={`Projects in ${locality}`} />
       {projects.length === 0 ? (
-        <EmptyState message={`No active projects tracked in ${locality} today.`} />
+        <EmptyState
+          icon={Building}
+          title="No Tracked Projects"
+          body={`No active project listings have been indexed in ${locality} today.`}
+          compact
+        />
       ) : (
         <div className="space-y-2.5">
           {projects.map((p, idx) => {
@@ -231,7 +234,12 @@ function InfraCard({ infraItems, locality }) {
     <motion.div variants={fadeUp} custom={5} className="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-sm">
       <SectionLabel icon={Zap} label="Infrastructure & Connectivity" />
       {infraItems.length === 0 ? (
-        <EmptyState message={`No infrastructure updates logged for ${locality} today.`} />
+        <EmptyState
+          icon={Zap}
+          title="No Infrastructure Updates"
+          body={`No transport or connectivity updates were logged for ${locality} today.`}
+          compact
+        />
       ) : (
         <div className="space-y-3">
           {infraItems.map((infra, idx) => {
@@ -291,7 +299,12 @@ function NewsCard({ market, locality }) {
     <motion.div variants={fadeUp} custom={6} className="bg-white border border-slate-200/70 rounded-3xl p-6 shadow-sm">
       <SectionLabel icon={Newspaper} label="Latest News & Policy" />
       {allNews.length === 0 ? (
-        <EmptyState message={`No market news logged for ${locality} today.`} />
+        <EmptyState
+          icon={Newspaper}
+          title="No Market News"
+          body={`No local news or regulatory bulletins affected ${locality} today.`}
+          compact
+        />
       ) : (
         <div className="divide-y divide-slate-100">
           {allNews.map((item, idx) => {

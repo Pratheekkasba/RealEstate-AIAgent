@@ -17,6 +17,7 @@ import AdminConsole from './pages/Admin/AdminConsole.jsx';
 import { AiBriefAssistant } from './components/assistant/AiBriefAssistant.jsx';
 import { PageSkeleton } from './components/ui/SkeletonCard.jsx';
 import { EmptyState } from './components/ui/EmptyState.jsx';
+import { SettingsPage } from './pages/Settings/SettingsPage.jsx';
 
 export default function App() {
   // Navigation State
@@ -25,7 +26,14 @@ export default function App() {
   const [adminPage, setAdminPage] = useState('overview');
 
   // City & Search State
-  const [selectedCity, setSelectedCity]   = useState('Pune');
+  const [selectedCity, setSelectedCity]   = useState(() => {
+    try {
+      const saved = localStorage.getItem('re_broker_prefs');
+      return saved ? JSON.parse(saved).defaultCity || 'Pune' : 'Pune';
+    } catch {
+      return 'Pune';
+    }
+  });
   const [searchOpen,   setSearchOpen]     = useState(false);
   const [selectedLocality, setSelectedLocality] = useState('Baner');
 
@@ -155,6 +163,28 @@ export default function App() {
   };
 
   const renderCustomerPage = () => {
+    if (page === 'settings') {
+      return <SettingsPage />;
+    }
+
+    if (selectedCity !== 'Pune') {
+      return (
+        <EmptyState
+          icon="locality"
+          title={`${selectedCity} Intelligence is Compiling`}
+          body={`No verified market briefings have been generated for ${selectedCity} during this cycle. The intelligence engine is currently indexing Pune.`}
+          action={
+            <button
+              onClick={() => setSelectedCity('Pune')}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              Switch back to Pune
+            </button>
+          }
+        />
+      );
+    }
+
     switch (page) {
       case 'brief':
         return (
@@ -205,13 +235,6 @@ export default function App() {
         );
       case 'daily-brief':
         return <DailyBriefView briefData={briefData} />;
-      case 'settings':
-        return (
-          <div className="bg-white border border-slate-200/80 rounded-3xl p-8 shadow-sm">
-            <h2 className="text-xl font-bold text-slate-800 mb-2">⚙ Settings</h2>
-            <p className="text-sm text-slate-400">Preferences and configuration options will be available here.</p>
-          </div>
-        );
       default:
         return null;
     }
