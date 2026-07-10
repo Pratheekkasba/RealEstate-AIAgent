@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   Building, Flame, TrendingUp, TrendingDown, Minus,
@@ -223,18 +223,50 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
     { label: 'AI Insights',    value: insightsCount, icon: Sparkles,    trend: 'Generated',                  trendDir: insightsCount > 0 ? 'up' : 'neutral' },
   ];
 
-  const defaultOpportunities = [
-    { type: 'opportunity', text: 'Increased buyer activity expected in Wakad due to Metro Line 3 trial run commencement.', subtext: 'Listings in proximity to the Hinjewadi corridor show accelerated absorption.' },
-    { type: 'opportunity', text: 'Lodha Sylvan Phase 3 in Hinjewadi is priced below indexed market benchmarks.', subtext: 'RERA registered and verified. High conviction for mid-term appreciation.' },
-    { type: 'watch', text: 'Kharadi pricing showing range compression. Monitor for direction signal over next 7 days.', subtext: 'Multiple sources report conflicting price quotes — cross-verify before pitching.' },
-    { type: 'risk', text: 'Stamp duty waiver window may close by fiscal Q2. Create urgency with fence-sitting buyers.', subtext: 'Regulatory timelines are subject to revision. Confirm with official IGRO portal.' },
-  ];
+  // Dynamically compile opportunities directly from live Firestore content to eliminate mock data
+  const opportunities = useMemo(() => {
+    const list = [];
+    if (recommendations.opportunity) {
+      list.push({
+        type: 'opportunity',
+        text: recommendations.opportunity.headline,
+        subtext: recommendations.opportunity.description,
+      });
+    }
+
+    insights.forEach(ins => {
+      if (ins.category === 'Launch') {
+        list.push({
+          type: 'opportunity',
+          text: `New Project: ${ins.description}`,
+          subtext: 'High conviction for local pricing growth.',
+        });
+      }
+    });
+
+    infrastructure.slice(0, 2).forEach(infra => {
+      list.push({
+        type: 'opportunity',
+        text: `Civic Corridor Upgrade: ${infra.title}`,
+        subtext: `${infra.expectedImpact} (Status: ${infra.status})`,
+      });
+    });
+
+    if (list.length === 0) {
+      list.push({
+        type: 'watch',
+        text: 'Awaiting high-conviction opportunities in this briefing cycle.',
+        subtext: 'Local price indices are holding steady.',
+      });
+    }
+    return list;
+  }, [recommendations, insights, infrastructure]);
 
   const talkingPoints = recommendations.talkingPoints || [
     'RBI keeps repo rates steady at 6.5%, ensuring home loan rates remain stable.',
     'Pune Metro Line 3 trial runs started — faster IT park connectivity incoming.',
     'Lodha Sylvan base rate rose +2.4% since last tracking, indicating strong local demand.',
-    'VJ Yashwin Orizzonte launched in Wakad — units starting at ₹85 Lakhs.',
+    'VJ Yashwin Orizzonte project launched in Wakad — units starting at ₹85 Lakhs.',
     'Verified MahaRERA listings ensure full legal and structural safety for buyers.',
   ];
 
@@ -365,18 +397,9 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
           <motion.section variants={fadeUp} custom={2} aria-labelledby="opportunities-heading">
             <SectionLabel icon={Sparkles} id="opportunities-heading">Actionable Opportunities</SectionLabel>
             <div className="space-y-3">
-              {recommendations.opportunity ? (
-                <OpportunityCard
-                  type="opportunity"
-                  text={recommendations.opportunity.headline}
-                  subtext={recommendations.opportunity.description}
-                  idx={0}
-                />
-              ) : (
-                defaultOpportunities.map((item, idx) => (
-                  <OpportunityCard key={idx} {...item} idx={idx} />
-                ))
-              )}
+              {opportunities.map((item, idx) => (
+                <OpportunityCard key={idx} {...item} idx={idx} />
+              ))}
             </div>
           </motion.section>
 

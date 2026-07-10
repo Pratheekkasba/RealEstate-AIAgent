@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   TrendingUp, MapPin, CheckCircle, BarChart2,
@@ -137,6 +137,23 @@ function MarketSkeleton() {
 export function MarketOverview({ briefData }) {
   const [activeTab, setActiveTab] = useState('overview');
 
+  const priceDelta = useMemo(() => {
+    if (!briefData || !briefData.projects) return 2.4;
+    let totalPct = 0;
+    let count = 0;
+    briefData.projects.forEach(p => {
+      if (p.pricePerSqFt && p.previousPrice) {
+        const cur = parseFloat(p.pricePerSqFt.replace(/[^0-9.]/g, ''));
+        const prev = parseFloat(p.previousPrice.replace(/[^0-9.]/g, ''));
+        if (cur > 0 && prev > 0) {
+          totalPct += ((cur - prev) / prev) * 100;
+          count++;
+        }
+      }
+    });
+    return count > 0 ? totalPct / count : 2.4;
+  }, [briefData]);
+
   if (!briefData) {
     return (
       <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm min-h-[500px]">
@@ -227,7 +244,7 @@ export function MarketOverview({ briefData }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <MetricCard
                 label="Indexed Price Delta"
-                value="▲ +2.4%"
+                value={`${priceDelta >= 0 ? '▲ +' : '▼ '}${priceDelta.toFixed(1)}%`}
                 sub="Average price per sq.ft across monitored projects."
               />
               <MetricCard

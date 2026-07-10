@@ -253,6 +253,15 @@ async function executeOrchestration() {
     runTracker.complete(finalStatus);
     await RunSummary.publish(activeDb, qualityGate);
 
+    // 7. Dispatch Email Briefings
+    try {
+      console.log(`[Orchestrator] Triggering daily email briefs...`);
+      const { sendDailyBriefing } = await import('./services/emailService.js');
+      await sendDailyBriefing(formattedReport.payload);
+    } catch (mailErr) {
+      console.warn(`[Orchestrator] Warning: Email dispatch failed: ${mailErr.message}`);
+    }
+
     console.log(`\n======================================================`);
     console.log(`Daily Brief successfully processed via Agent Registry!`);
     console.log(`Status: ${qualityGate.status.toUpperCase()}`);

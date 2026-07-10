@@ -243,26 +243,30 @@ export default function App() {
   return (
     <div className="flex min-h-screen bg-slate-50/50">
       {/* Sidebar */}
-      <Sidebar
-        page={page}
-        setPage={setPage}
-        adminMode={adminMode}
-        setAdminMode={setAdminMode}
-        adminPage={adminPage}
-        setAdminPage={setAdminPage}
-      />
+      <div className="print:hidden flex shrink-0">
+        <Sidebar
+          page={page}
+          setPage={setPage}
+          adminMode={adminMode}
+          setAdminMode={setAdminMode}
+          adminPage={adminPage}
+          setAdminPage={setAdminPage}
+        />
+      </div>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden relative">
         
         {/* Top Navigation */}
-        <TopNavigation
-          selectedCity={selectedCity}
-          setSelectedCity={setSelectedCity}
-          onOpenSearch={() => setSearchOpen(true)}
-          onTriggerRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
-        />
+        <div className="print:hidden">
+          <TopNavigation
+            selectedCity={selectedCity}
+            setSelectedCity={setSelectedCity}
+            onOpenSearch={() => setSearchOpen(true)}
+            onTriggerRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
+        </div>
 
         {/* Search Modal */}
         <SearchOverlay
@@ -274,10 +278,10 @@ export default function App() {
         />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto p-6 print:p-0">
           {/* Page Header breadcrumb */}
           {!adminMode && (
-            <div className="mb-6">
+            <div className="mb-6 print:hidden">
               <h1 className="text-2xl font-black text-slate-800">
                 {pageTitles[page] || 'Dashboard'}
               </h1>
@@ -328,10 +332,12 @@ export default function App() {
 
       {/* ── Floating AI Brief Assistant — visible in customer mode only ── */}
       {!adminMode && !loading && (
-        <AiBriefAssistant
-          briefData={briefData}
-          archive={archiveBriefs}
-        />
+        <div className="print:hidden">
+          <AiBriefAssistant
+            briefData={briefData}
+            archive={archiveBriefs}
+          />
+        </div>
       )}
     </div>
   );

@@ -495,8 +495,22 @@ export function LocalitiesDirectory({
     ? Math.round(priceNums.reduce((a, b) => a + b, 0) / priceNums.length)
     : 8500;
 
-  // Mock trend (would come from Firestore in production)
-  const priceTrend = localityProjects.length > 0 ? 2.4 : 0;
+  // Calculate price trend delta dynamically from live database fields
+  const priceTrend = useMemo(() => {
+    let totalPct = 0;
+    let count = 0;
+    localityProjects.forEach(p => {
+      if (p.pricePerSqFt && p.previousPrice) {
+        const cur = parseFloat(p.pricePerSqFt.replace(/[^0-9.]/g, ''));
+        const prev = parseFloat(p.previousPrice.replace(/[^0-9.]/g, ''));
+        if (cur > 0 && prev > 0) {
+          totalPct += ((cur - prev) / prev) * 100;
+          count++;
+        }
+      }
+    });
+    return count > 0 ? parseFloat((totalPct / count).toFixed(1)) : 0;
+  }, [localityProjects]);
 
   const localityDescriptions = {
     Baner:       'Prime IT corridor suburb with high-end residential clusters and strong demand.',
