@@ -5,7 +5,7 @@ import {
   Mail, MessageSquare, Database, Save, CheckCircle,
 } from 'lucide-react';
 
-export function SettingsPage() {
+export function SettingsPage({ onSave }) {
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem('re_broker_profile');
@@ -14,9 +14,18 @@ export function SettingsPage() {
         agency: 'Antigravity Real Estate',
         license: 'RERA-P-022062604',
         email: 'pratheek@antigravity.in',
+        preferredLocalities: 'Baner, Wakad, Hinjewadi',
+        favouriteBuilders: 'Lodha Group, Vilas Javdekar',
       };
     } catch {
-      return { name: 'Pratheek Kasba', agency: 'Antigravity Real Estate', license: 'RERA-P-022062604', email: 'pratheek@antigravity.in' };
+      return {
+        name: 'Pratheek Kasba',
+        agency: 'Antigravity Real Estate',
+        license: 'RERA-P-022062604',
+        email: 'pratheek@antigravity.in',
+        preferredLocalities: 'Baner, Wakad, Hinjewadi',
+        favouriteBuilders: 'Lodha Group, Vilas Javdekar',
+      };
     }
   });
 
@@ -42,6 +51,9 @@ export function SettingsPage() {
     localStorage.setItem('re_broker_prefs', JSON.stringify(preferences));
     setSavedMessage(true);
     setTimeout(() => setSavedMessage(false), 2000);
+    if (onSave) {
+      onSave(profile, preferences);
+    }
   };
 
   return (
@@ -56,7 +68,7 @@ export function SettingsPage() {
         <div>
           <h2 className="text-xl font-black text-slate-800 flex items-center gap-2">
             <Settings className="w-5 h-5 text-blue-600" />
-            Broker Settings
+            Advisory Preferences
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
             Configure your client briefing templates, default localities, and RERA verification preferences.
@@ -86,7 +98,7 @@ export function SettingsPage() {
         <div className="space-y-5">
           <div className="flex items-center gap-2 border-b border-slate-50 pb-2">
             <User className="w-4 h-4 text-slate-400" />
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Broker Profile</h3>
+            <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">Advisor Profile</h3>
           </div>
 
           <div className="space-y-4">
@@ -101,7 +113,7 @@ export function SettingsPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">Agency / Brokerage Name</label>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">Agency / Firm Name</label>
               <input
                 type="text"
                 value={profile.agency}
@@ -126,6 +138,28 @@ export function SettingsPage() {
                 type="email"
                 value={profile.email}
                 onChange={e => setProfile({ ...profile, email: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-400 focus:bg-white rounded-xl text-sm text-slate-700 outline-none transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">Preferred Localities (comma-separated)</label>
+              <input
+                type="text"
+                value={profile.preferredLocalities || ''}
+                onChange={e => setProfile({ ...profile, preferredLocalities: e.target.value })}
+                placeholder="e.g. Baner, Wakad, Hinjewadi"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-400 focus:bg-white rounded-xl text-sm text-slate-700 outline-none transition-all"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">Favourite Builders (comma-separated)</label>
+              <input
+                type="text"
+                value={profile.favouriteBuilders || ''}
+                onChange={e => setProfile({ ...profile, favouriteBuilders: e.target.value })}
+                placeholder="e.g. Lodha Group, Godrej, Vilas Javdekar"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-400 focus:bg-white rounded-xl text-sm text-slate-700 outline-none transition-all"
               />
             </div>

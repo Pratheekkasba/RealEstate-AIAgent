@@ -34,6 +34,29 @@ export default function App() {
       return 'Pune';
     }
   });
+
+  const [profile, setProfile] = useState(() => {
+    try {
+      const saved = localStorage.getItem('re_broker_profile');
+      return saved ? JSON.parse(saved) : {
+        name: 'Pratheek Kasba',
+        agency: 'Antigravity Real Estate',
+        license: 'RERA-P-022062604',
+        email: 'pratheek@antigravity.in',
+        preferredLocalities: 'Baner, Wakad, Hinjewadi',
+        favouriteBuilders: 'Lodha Group, Vilas Javdekar'
+      };
+    } catch {
+      return {
+        name: 'Pratheek Kasba',
+        agency: 'Antigravity Real Estate',
+        license: 'RERA-P-022062604',
+        email: 'pratheek@antigravity.in',
+        preferredLocalities: 'Baner, Wakad, Hinjewadi',
+        favouriteBuilders: 'Lodha Group, Vilas Javdekar'
+      };
+    }
+  });
   const [searchOpen,   setSearchOpen]     = useState(false);
   const [selectedLocality, setSelectedLocality] = useState('Baner');
 
@@ -164,7 +187,12 @@ export default function App() {
 
   const renderCustomerPage = () => {
     if (page === 'settings') {
-      return <SettingsPage />;
+      return <SettingsPage onSave={(p, prefs) => {
+        setProfile(p);
+        if (prefs?.defaultCity) {
+          setSelectedCity(prefs.defaultCity);
+        }
+      }} />;
     }
 
     if (selectedCity !== 'Pune') {
@@ -194,6 +222,7 @@ export default function App() {
             toggleWatchlist={toggleWatchlist}
             setPage={setPage}
             setSelectedLocality={setSelectedLocality}
+            profile={profile}
           />
         );
       case 'market':

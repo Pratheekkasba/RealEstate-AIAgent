@@ -180,7 +180,7 @@ function TalkingPoint({ text, idx, isLast }) {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────────
-export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, setSelectedLocality }) {
+export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, setSelectedLocality, profile }) {
 
   // ── Structured skeleton matches actual layout ──
   if (!briefData) {
@@ -301,11 +301,50 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
                 Morning Intelligence Brief
               </span>
               <h2 className="text-4xl font-black tracking-tight leading-none">
-                Good Morning,<br />Broker.
+                Good Morning,<br />{profile?.name || 'Partner'}.
               </h2>
               <p className="text-blue-200/80 text-sm max-w-md leading-relaxed">
-                Your verified Pune real estate index for today is ready. Review the briefing before your first client call.
+                {profile?.preferredLocalities ? (
+                  `Tracking active metrics for ${profile.preferredLocalities.split(',').slice(0, 3).join(', ')}${profile.preferredLocalities.split(',').length > 3 ? '...' : ''}.`
+                ) : (
+                  "Your verified Pune real estate index for today is ready. Review the briefing before your first client call."
+                )}
               </p>
+
+              {/* Personalization shortcut pills */}
+              {(profile?.preferredLocalities || profile?.favouriteBuilders) && (
+                <div className="flex flex-wrap gap-2 pt-3">
+                  {profile.preferredLocalities?.split(',').map(item => {
+                    const cleanName = item.trim();
+                    if (!cleanName) return null;
+                    return (
+                      <button
+                        key={cleanName}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedLocality(cleanName);
+                          setPage('localities');
+                        }}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold bg-white/10 hover:bg-white/20 text-blue-100 px-2.5 py-1 rounded-lg transition-all focus-visible:ring-1 focus-visible:ring-blue-400 cursor-pointer"
+                      >
+                        📍 {cleanName}
+                      </button>
+                    );
+                  })}
+                  {profile.favouriteBuilders?.split(',').map(item => {
+                    const cleanName = item.trim();
+                    if (!cleanName) return null;
+                    return (
+                      <span
+                        key={cleanName}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold bg-white/5 text-purple-200 border border-white/5 px-2.5 py-1 rounded-lg"
+                      >
+                        🏢 {cleanName}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-wrap gap-3 shrink-0">
