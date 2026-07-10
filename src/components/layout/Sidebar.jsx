@@ -111,7 +111,7 @@ export function Sidebar({ page, setPage, adminMode, setAdminMode, adminPage, set
       </nav>
 
       {/* ── Mode switch footer ── */}
-      <div className="p-4 border-t border-slate-800/60">
+      <div className="p-4 border-t border-slate-800/60 space-y-2">
         {adminMode ? (
           <button
             onClick={() => setAdminMode(false)}
@@ -131,6 +131,14 @@ export function Sidebar({ page, setPage, adminMode, setAdminMode, adminPage, set
             Admin Console
           </button>
         )}
+        <button
+          onClick={onSignOut}
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-red-950/20 hover:bg-red-950/50 text-red-400 hover:text-red-300 border border-red-900/30 rounded-xl text-xs font-bold transition-all focus-visible:ring-2 focus-visible:ring-red-500"
+          aria-label="Sign out"
+        >
+          <LogOut className="w-3.5 h-3.5" aria-hidden="true" />
+          Sign Out
+        </button>
       </div>
     </aside>
   );

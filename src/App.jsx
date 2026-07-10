@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { doc, getDoc, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
-import { db } from './services/firebase/firebase.js';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { db, auth } from './services/firebase/firebase.js';
+import LoginPage from './pages/Auth/LoginPage.jsx';
 
 import Sidebar from './components/layout/Sidebar.jsx';
 import TopNavigation from './components/layout/TopNavigation.jsx';
@@ -24,6 +26,10 @@ export default function App() {
   const [page, setPage] = useState('brief');
   const [adminMode, setAdminMode] = useState(false);
   const [adminPage, setAdminPage] = useState('overview');
+
+  // Auth State
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   // City & Search State
   const [selectedCity, setSelectedCity]   = useState(() => {
@@ -102,6 +108,23 @@ export default function App() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Firebase Auth State Observer
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSignOut = useCallback(async () => {
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('[Sign Out Error]', err);
+    }
   }, []);
 
   // Fetch today's brief and system run data
@@ -269,6 +292,22 @@ export default function App() {
     }
   };
 
+  if (authLoading) {
+    return (
+      <div className="min-h-screen w-full flex flex-col items-center justify-center bg-slate-950 gap-3 text-slate-400">
+        <svg className="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Initializing Session...</span>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginPage />;
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50/50">
       {/* Sidebar */}
@@ -280,6 +319,7 @@ export default function App() {
           setAdminMode={setAdminMode}
           adminPage={adminPage}
           setAdminPage={setAdminPage}
+          onSignOut={handleSignOut}
         />
       </div>
 
