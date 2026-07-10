@@ -314,7 +314,7 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
               {/* Personalization shortcut pills */}
               {(profile?.preferredLocalities || profile?.favouriteBuilders) && (
                 <div className="flex flex-wrap gap-2 pt-3">
-                  {profile.preferredLocalities?.split(',').map(item => {
+                  {profile.preferredLocalities ? profile.preferredLocalities.split(',').map(item => {
                     const cleanName = item.trim();
                     if (!cleanName) return null;
                     return (
@@ -330,8 +330,8 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
                         📍 {cleanName}
                       </button>
                     );
-                  })}
-                  {profile.favouriteBuilders?.split(',').map(item => {
+                  }) : null}
+                  {profile.favouriteBuilders ? profile.favouriteBuilders.split(',').map(item => {
                     const cleanName = item.trim();
                     if (!cleanName) return null;
                     return (
@@ -342,7 +342,7 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
                         🏢 {cleanName}
                       </span>
                     );
-                  })}
+                  }) : null}
                 </div>
               )}
             </div>
