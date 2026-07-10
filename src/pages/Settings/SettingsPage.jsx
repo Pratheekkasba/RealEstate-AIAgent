@@ -16,6 +16,7 @@ export function SettingsPage({ onSave }) {
         email: 'pratheek@antigravity.in',
         preferredLocalities: 'Baner, Wakad, Hinjewadi',
         favouriteBuilders: 'Lodha Group, Vilas Javdekar',
+        plan: 'free',
       };
     } catch {
       return {
@@ -25,6 +26,7 @@ export function SettingsPage({ onSave }) {
         email: 'pratheek@antigravity.in',
         preferredLocalities: 'Baner, Wakad, Hinjewadi',
         favouriteBuilders: 'Lodha Group, Vilas Javdekar',
+        plan: 'free',
       };
     }
   });
@@ -162,6 +164,20 @@ export function SettingsPage({ onSave }) {
                 placeholder="e.g. Lodha Group, Godrej, Vilas Javdekar"
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-400 focus:bg-white rounded-xl text-sm text-slate-700 outline-none transition-all"
               />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">Workspace Subscription Tier</label>
+              <select
+                value={profile.plan || 'free'}
+                onChange={e => setProfile({ ...profile, plan: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 focus:border-blue-400 focus:bg-white rounded-xl text-sm text-slate-700 outline-none transition-all font-semibold"
+              >
+                <option value="free">Free Tier Plan (Default City Only)</option>
+                <option value="starter">Starter Plan (Unlimited Cities)</option>
+                <option value="professional">Professional Plan (Priority Indexing)</option>
+                <option value="enterprise">Enterprise Plan (Dedicated Models)</option>
+              </select>
             </div>
           </div>
         </div>

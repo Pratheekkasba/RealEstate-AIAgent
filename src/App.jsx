@@ -50,7 +50,8 @@ export default function App() {
         license: 'RERA-P-022062604',
         email: 'pratheek@antigravity.in',
         preferredLocalities: 'Baner, Wakad, Hinjewadi',
-        favouriteBuilders: 'Lodha Group, Vilas Javdekar'
+        favouriteBuilders: 'Lodha Group, Vilas Javdekar',
+        plan: 'free'
       };
     } catch {
       return {
@@ -59,7 +60,8 @@ export default function App() {
         license: 'RERA-P-022062604',
         email: 'pratheek@antigravity.in',
         preferredLocalities: 'Baner, Wakad, Hinjewadi',
-        favouriteBuilders: 'Lodha Group, Vilas Javdekar'
+        favouriteBuilders: 'Lodha Group, Vilas Javdekar',
+        plan: 'free'
       };
     }
   });
@@ -218,12 +220,12 @@ export default function App() {
       }} />;
     }
 
-    if (selectedCity !== 'Pune') {
+    if (selectedCity !== 'Pune' && (profile?.plan || 'free') === 'free') {
       return (
         <EmptyState
           icon="locality"
           title={`${selectedCity} Intelligence is Compiling`}
-          body={`No verified market briefings have been generated for ${selectedCity} during this cycle. The intelligence engine is currently indexing Pune.`}
+          body={`No verified market briefings have been generated for ${selectedCity} during this cycle. The intelligence engine is currently indexing Pune. Upgrade your subscription to search and index custom cities.`}
           action={
             <button
               onClick={() => setSelectedCity('Pune')}
