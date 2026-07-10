@@ -501,8 +501,8 @@ export function LocalitiesDirectory({
     let count = 0;
     localityProjects.forEach(p => {
       if (p.pricePerSqFt && p.previousPrice) {
-        const cur = parseFloat(p.pricePerSqFt.replace(/[^0-9.]/g, ''));
-        const prev = parseFloat(p.previousPrice.replace(/[^0-9.]/g, ''));
+        const cur = parseFloat(String(p.pricePerSqFt).replace(/[^0-9.]/g, ''));
+        const prev = parseFloat(String(p.previousPrice).replace(/[^0-9.]/g, ''));
         if (cur > 0 && prev > 0) {
           totalPct += ((cur - prev) / prev) * 100;
           count++;

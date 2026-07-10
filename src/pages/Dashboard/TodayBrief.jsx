@@ -187,10 +187,12 @@ export function TodayBrief({ briefData, watchlist, toggleWatchlist, setPage, set
     return <PageSkeleton />;
   }
 
-  const {
-    projects = [], market = [], infrastructure = [],
-    insights = [], recommendations = {}, date,
-  } = briefData;
+  const projects       = Array.isArray(briefData.projects) ? briefData.projects : [];
+  const market         = Array.isArray(briefData.market) ? briefData.market : [];
+  const infrastructure = Array.isArray(briefData.infrastructure) ? briefData.infrastructure : [];
+  const insights       = Array.isArray(briefData.insights) ? briefData.insights : [];
+  const recommendations = briefData.recommendations || {};
+  const date           = briefData.date;
 
   const projectsCount = projects.length;
   const launchCount   = insights.filter(i => i.category === 'Launch').length;

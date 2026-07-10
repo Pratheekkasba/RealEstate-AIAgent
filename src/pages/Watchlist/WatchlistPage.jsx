@@ -20,7 +20,10 @@ const cardVariants = {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 function deriveLocality(name, briefData) {
-  const { projects = [], insights = [], infrastructure = [], market = [] } = briefData;
+  const projects       = Array.isArray(briefData.projects) ? briefData.projects : [];
+  const insights       = Array.isArray(briefData.insights) ? briefData.insights : [];
+  const infrastructure = Array.isArray(briefData.infrastructure) ? briefData.infrastructure : [];
+  const market         = Array.isArray(briefData.market) ? briefData.market : [];
   const n = name.toLowerCase();
 
   const localProjects = projects.filter(p => (p.locality || '').toLowerCase() === n);

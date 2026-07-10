@@ -138,13 +138,14 @@ export function MarketOverview({ briefData }) {
   const [activeTab, setActiveTab] = useState('overview');
 
   const priceDelta = useMemo(() => {
-    if (!briefData || !briefData.projects) return 2.4;
+    const projects = Array.isArray(briefData?.projects) ? briefData.projects : [];
+    if (projects.length === 0) return 2.4;
     let totalPct = 0;
     let count = 0;
-    briefData.projects.forEach(p => {
+    projects.forEach(p => {
       if (p.pricePerSqFt && p.previousPrice) {
-        const cur = parseFloat(p.pricePerSqFt.replace(/[^0-9.]/g, ''));
-        const prev = parseFloat(p.previousPrice.replace(/[^0-9.]/g, ''));
+        const cur = parseFloat(String(p.pricePerSqFt).replace(/[^0-9.]/g, ''));
+        const prev = parseFloat(String(p.previousPrice).replace(/[^0-9.]/g, ''));
         if (cur > 0 && prev > 0) {
           totalPct += ((cur - prev) / prev) * 100;
           count++;

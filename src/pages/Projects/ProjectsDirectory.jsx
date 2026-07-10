@@ -41,7 +41,8 @@ export function ProjectsDirectory({
     return <div className="text-center py-10 text-slate-400">Loading Projects Directory...</div>;
   }
 
-  const { projects = [], insights = [] } = briefData;
+  const projects = Array.isArray(briefData.projects) ? briefData.projects : [];
+  const insights = Array.isArray(briefData.insights) ? briefData.insights : [];
 
   const launchesCount = insights.filter(i => i.category === 'Launch').length;
   

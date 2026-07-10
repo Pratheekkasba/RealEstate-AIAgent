@@ -42,7 +42,11 @@ export function DailyBriefView({ briefData }) {
     return <div className="text-center py-10 text-slate-400">Loading Brief...</div>;
   }
 
-  const { projects = [], market = [], infrastructure = [], insights = [], recommendations = {} } = briefData;
+  const projects       = Array.isArray(briefData.projects) ? briefData.projects : [];
+  const market         = Array.isArray(briefData.market) ? briefData.market : [];
+  const infrastructure = Array.isArray(briefData.infrastructure) ? briefData.infrastructure : [];
+  const insights       = Array.isArray(briefData.insights) ? briefData.insights : [];
+  const recommendations = briefData.recommendations || {};
 
   const handlePrint = () => {
     window.print();
