@@ -60,7 +60,7 @@ function NavItem({ link, isActive, accentActive, onClick }) {
 }
 
 // ─── Sidebar ─────────────────────────────────────────────────────────────────
-export function Sidebar({ page, setPage, adminMode, setAdminMode, adminPage, setAdminPage }) {
+export function Sidebar({ page, setPage, adminMode, setAdminMode, adminPage, setAdminPage, onSignOut }) {
   const links      = adminMode ? ADMIN_LINKS    : CUSTOMER_LINKS;
   const activePage = adminMode ? adminPage      : page;
   const setActive  = adminMode ? setAdminPage   : setPage;
